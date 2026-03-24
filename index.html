@@ -1340,7 +1340,7 @@ function initMapLayers() {
       paint: {
         'line-color': ['get', 'color'],
         'line-width': ['interpolate', ['linear'], ['zoom'], 2, 0.8, 6, 1.5, 10, 2.5, 14, 3.5],
-        'line-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.3, 6, 0.55, 9, 0.85]
+        'line-opacity': 0.85
       }
     });
     map.addLayer({
