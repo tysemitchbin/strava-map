@@ -2328,10 +2328,7 @@ document.addEventListener('keydown', e=>{
   if (e.key==='Escape') { closeDetail(); closeLightbox(); closeImport(); }
 });
 
-window.toggleTerrain=toggleTerrain; window.updateTrackHighlight=updateTrackHighlight;
-window.setFeedSort=setFeedSort; window.calNav=calNav; window.goToActivity=goToActivity;
-window.handleProfilePhoto=handleProfilePhoto; window.saveProfile=saveProfile;
-window.showCalendarDetail=showCalendarDetail; window.toggleSatellite=toggleSatellite;
+ window.toggleSatellite=toggleSatellite;
 window.togglePanel=togglePanel; window.switchView=switchView;
 window.closeDetail=closeDetail; window.openImport=openImport; window.closeImport=closeImport;
 window.handleGPXSelect=handleGPXSelect; window.doImport=doImport;
@@ -2339,6 +2336,38 @@ window.handlePhotoUpload=handlePhotoUpload; window.removePhoto=removePhoto;
 window.openLightbox=openLightbox; window.closeLightbox=closeLightbox;
 window.setMood=setMood; window.onNameEdit=onNameEdit; window.onNoteEdit=onNoteEdit;
 window.updateTypeColor=updateTypeColor; window.forceSync=forceSync;
+
+// Global function registry — makes all functions available to HTML onclick handlers
+// even before the script fully executes
+const _fns = {};
+function _r(name, fn) { _fns[name] = fn; window[name] = fn; }
+
+// Register after all functions defined
+_r('toggleTerrain', toggleTerrain);
+_r('toggleSatellite', toggleSatellite);
+_r('togglePanel', togglePanel);
+_r('switchView', switchView);
+_r('closeDetail', closeDetail);
+_r('openImport', openImport);
+_r('closeImport', closeImport);
+_r('handleGPXSelect', handleGPXSelect);
+_r('doImport', doImport);
+_r('handlePhotoUpload', handlePhotoUpload);
+_r('removePhoto', removePhoto);
+_r('openLightbox', openLightbox);
+_r('closeLightbox', closeLightbox);
+_r('setMood', setMood);
+_r('onNameEdit', onNameEdit);
+_r('onNoteEdit', onNoteEdit);
+_r('updateTypeColor', updateTypeColor);
+_r('forceSync', forceSync);
+_r('updateTrackHighlight', updateTrackHighlight);
+_r('setFeedSort', setFeedSort);
+_r('calNav', calNav);
+_r('goToActivity', goToActivity);
+_r('handleProfilePhoto', handleProfilePhoto);
+_r('saveProfile', saveProfile);
+_r('showCalendarDetail', showCalendarDetail);
 
 initMap();
 </script>
