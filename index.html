@@ -2339,6 +2339,8 @@ function renderHoneycomb() {
     const date = mem.date ? new Date(mem.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '';
     const dist = mem.distance ? (mem.distance/1000).toFixed(1)+' km' : '';
     const mood = MOODS.find(m => m.id === mem.mood);
+    const coords = mem.coords || (mem._polyline ? decodePolyline(mem._polyline) : null);
+
     if (mem.photos?.length) {
       cell.innerHTML = `
         <div class="hex-bg"><img class="hex-img" src="${mem.photos[0].dataUrl}" alt=""></div>
@@ -2348,11 +2350,11 @@ function renderHoneycomb() {
         </div>
         ${mood ? `<div class="hex-mood">${mood.emoji}</div>` : ''}`;
     } else {
-      const coords = mem.coords || (mem._polyline ? decodePolyline(mem._polyline) : null);
+      const staticUrl = buildStaticMapUrl(mem, coords, color, HEX_W, Math.round(HEX_H));
       cell.innerHTML = `
-        <div class="hex-bg" style="background:${color}20">
-          ${coords ? `<canvas class="hex-map" id="hexmap-${mem.id}" width="160" height="184"></canvas>` : ''}
-          <div style="position:absolute;inset:0;background:linear-gradient(135deg,${color}40,${color}15)"></div>
+        <div class="hex-bg">
+          ${staticUrl ? `<img class="hex-img" src="${staticUrl}" alt="" loading="lazy">` : ''}
+          <div style="position:absolute;inset:0;background:linear-gradient(135deg,${color}55,${color}25)"></div>
         </div>
         <div class="hex-overlay">
           <div class="hex-name">${mem.name}</div>
@@ -2366,43 +2368,65 @@ function renderHoneycomb() {
     cell.style.width = HEX_W + 'px';
     cell.style.height = HEX_H + 'px';
     container.appendChild(cell);
-    if (!mem.photos?.length) {
-      const coords = mem.coords || (mem._polyline ? decodePolyline(mem._polyline) : null);
-      if (coords?.length >= 2) requestAnimationFrame(() => drawMiniMap(mem.id, coords, color));
-    }
   });
 }
 
-function drawMiniMap(memId, coords, color) {
-  const canvas = document.getElementById(`hexmap-${memId}`);
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = 160, H = 184;
-  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-  coords.forEach(([lng, lat]) => { minX=Math.min(minX,lng); maxX=Math.max(maxX,lng); minY=Math.min(minY,lat); maxY=Math.max(maxY,lat); });
-  const pad = 24;
-  const scaleX = (W-pad*2) / (maxX-minX || 1);
-  const scaleY = (H-pad*2) / (maxY-minY || 1);
-  const scale = Math.min(scaleX, scaleY);
-  const offX = (W-(maxX-minX)*scale) / 2;
-  const offY = (H-(maxY-minY)*scale) / 2;
-  ctx.clearRect(0, 0, W, H);
-  ctx.beginPath();
-  ctx.strokeStyle = color; ctx.lineWidth = 2;
-  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.globalAlpha = 0.9;
-  coords.forEach(([lng, lat], i) => {
-    const x = offX + (lng-minX)*scale;
-    const y = H - offY - (lat-minY)*scale;
-    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-  });
-  ctx.stroke();
-  if (coords.length > 0) {
-    const [lng, lat] = coords[0];
-    const x = offX + (lng-minX)*scale;
-    const y = H - offY - (lat-minY)*scale;
-    ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2);
-    ctx.fillStyle = color; ctx.globalAlpha = 1; ctx.fill();
+function buildStaticMapUrl(mem, coords, color, w, h) {
+  // Use Mapbox Static Images API with the track as a path overlay
+  const token = mapboxgl.accessToken;
+  if (!coords || coords.length < 2) {
+    // No track — just center on start point or skip
+    if (mem.startLat) {
+      return `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${mem.startLng},${mem.startLat},12,0/${w}x${h}@2x?access_token=${token}&logo=false&attribution=false`;
+    }
+    return null;
   }
+
+  // Simplify polyline for URL length: sample ~60 points max
+  const simplified = simplifyCoords(coords, 60);
+
+  // Encode as Mapbox path overlay using polyline encoding
+  const encoded = encodePolylineForStatic(simplified);
+  const strokeColor = color.replace('#', '');
+
+  // Build path overlay string
+  const pathOverlay = `path-3+${strokeColor}-90(${encodeURIComponent(encoded)})`;
+
+  // Auto-fit to the path
+  return `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pathOverlay}/auto/${w}x${h}@2x?padding=20&access_token=${token}&logo=false&attribution=false`;
+}
+
+function simplifyCoords(coords, maxPts) {
+  if (coords.length <= maxPts) return coords;
+  const step = (coords.length - 1) / (maxPts - 1);
+  const result = [];
+  for (let i = 0; i < maxPts; i++) {
+    result.push(coords[Math.round(i * step)]);
+  }
+  return result;
+}
+
+function encodePolylineForStatic(coords) {
+  // Encode [lng,lat] pairs as a standard polyline (lat,lng order for encoding)
+  let prevLat = 0, prevLng = 0, encoded = '';
+  coords.forEach(([lng, lat]) => {
+    encoded += encodeSignedValue(Math.round(lat * 1e5) - Math.round(prevLat * 1e5));
+    encoded += encodeSignedValue(Math.round(lng * 1e5) - Math.round(prevLng * 1e5));
+    prevLat = lat;
+    prevLng = lng;
+  });
+  return encoded;
+}
+
+function encodeSignedValue(val) {
+  let v = val < 0 ? ~(val << 1) : (val << 1);
+  let encoded = '';
+  while (v >= 0x20) {
+    encoded += String.fromCharCode((0x20 | (v & 0x1f)) + 63);
+    v >>= 5;
+  }
+  encoded += String.fromCharCode(v + 63);
+  return encoded;
 }
 
 // ════════════════════════════════════════════════
