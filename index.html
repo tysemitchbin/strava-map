@@ -615,25 +615,32 @@ body {
   color: var(--muted); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 4px;
 }
 .feed-type-chip.active { color: var(--ink); border-color: currentColor; }
+
+/* Honeycomb grid */
 .honeycomb-wrap {
-  flex: 1; overflow-y: auto; padding: 20px;
+  flex: 1; overflow-y: auto; padding: 32px 20px;
   background: var(--paper2);
 }
 .honeycomb {
-  display: flex; flex-wrap: wrap;
-  gap: 3px;
+  --hex-w: 150px;
+  --hex-h: 130px; /* = hex-w * sin(60°) ≈ 0.866 */
+  --hex-gap: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  width: calc(var(--hex-w) * 4 + var(--hex-gap) * 3 + var(--hex-w) * 0.5);
 }
 /* Hexagon cells */
 .hex-cell {
-  width: 160px; height: 184px;
+  width: var(--hex-w);
+  height: calc(var(--hex-w) * 1.1547); /* 2/sqrt(3) */
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
   cursor: pointer; position: relative; overflow: hidden;
   transition: transform 0.2s, filter 0.2s;
-  margin-bottom: -46px;
+  margin-right: var(--hex-gap);
+  margin-bottom: calc(var(--hex-w) * -0.2885 + var(--hex-gap));
   flex-shrink: 0;
 }
-.hex-cell:nth-child(even) { margin-top: 92px; }
-.hex-cell:hover { transform: scale(1.05); filter: brightness(1.1); z-index: 2; }
+.hex-cell:hover { transform: scale(1.04); filter: brightness(1.08); z-index: 2; }
 .hex-bg { position: absolute; inset: 0; }
 .hex-img { width: 100%; height: 100%; object-fit: cover; }
 .hex-overlay {
@@ -2040,7 +2047,19 @@ function renderHoneycomb() {
   const container = document.getElementById('honeycomb');
   container.innerHTML = '';
   const mems = getFeedMemories();
-  mems.forEach((mem) => {
+
+  // We need 4 per row, with every other row offset by half a hex
+  // Inject invisible spacers at start of odd rows
+  const COLS = 4;
+  mems.forEach((mem, idx) => {
+    const col = idx % COLS;
+    const row = Math.floor(idx / COLS);
+    // Insert half-hex spacer at start of odd rows
+    if (col === 0 && row % 2 === 1) {
+      const spacer = document.createElement('div');
+      spacer.style.cssText = 'width:calc(var(--hex-w) * 0.5 + var(--hex-gap) * 0.5);flex-shrink:0;';
+      container.appendChild(spacer);
+    }
     const cell = document.createElement('div');
     cell.className = 'hex-cell';
     const color = mem.customColor || getColor(mem.type);
