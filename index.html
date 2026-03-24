@@ -594,18 +594,22 @@ body {
 .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
 
 /* ── FEED ── */
+.feed-left {
+  width: 300px; min-width: 300px; flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  background: var(--paper);
+  overflow: hidden;
+}
 .feed-controls {
-  position: sticky; top: 0; z-index: 10;
   background: var(--paper); border-bottom: 1px solid var(--border);
-  padding: 8px 16px; flex-shrink: 0;
+  padding: 10px 14px; flex-shrink: 0;
 }
 .feed-filter-row {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;
 }
-.feed-divider {
-  width: 1px; height: 16px; background: var(--border); flex-shrink: 0;
-}
-.feed-filters { display: flex; gap: 4px; }
+.feed-filters { display: flex; gap: 4px; flex-wrap: wrap; }
+.feed-type-filters { display: flex; gap: 3px; flex-wrap: wrap; }
 .feed-filter-btn {
   padding: 4px 12px; border: 1px solid var(--border);
   background: transparent; font-family: 'JetBrains Mono', monospace;
@@ -624,30 +628,19 @@ body {
 
 /* Honeycomb grid */
 .honeycomb-wrap {
-  flex: 1; overflow-y: auto; padding: 20px 20px 60px;
+  flex: 1; overflow-y: auto;
   background: var(--paper2);
+  position: relative;
 }
 .honeycomb {
-  --s: 140px; /* hex width */
-  --m: 3px;   /* gap */
-  --r: calc(var(--s) * 1.1547 / 2); /* circumradius */
-  display: grid;
-  grid-template-columns: repeat(auto-fill, var(--s));
-  grid-auto-rows: calc(var(--s) * 0.5774); /* tan30 * s */
-  gap: var(--m) calc(var(--m) * 2);
+  position: relative;
   width: 100%;
-}
-.hex-row-spacer {
-  grid-column: 1 / -1;
-  height: 0;
 }
 /* Hexagon cells */
 .hex-cell {
-  grid-row: span 2;
-  width: var(--s);
-  height: calc(var(--s) * 1.1547);
+  position: absolute;
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  cursor: pointer; position: relative; overflow: hidden;
+  cursor: pointer; overflow: hidden;
   transition: transform 0.2s, filter 0.2s;
 }
 .hex-cell:hover { transform: scale(1.04); filter: brightness(1.08); z-index: 2; }
@@ -814,30 +807,21 @@ body {
 
 /* ── FEED PREVIEW PANEL ── */
 .feed-preview {
-  width: 0; min-width: 0;
-  background: var(--paper);
-  border-right: 1px solid var(--border);
-  display: flex; flex-direction: column;
-  overflow: hidden;
-  transition: width 0.3s ease, min-width 0.3s ease;
-  flex-shrink: 0;
-  position: relative;
+  display: none; flex-direction: column;
+  flex: 1; overflow: hidden;
 }
-.feed-preview.open {
-  width: 300px; min-width: 300px;
+.feed-preview.open { display: flex; }
+.feed-empty-state {
+  flex: 1; display: flex; align-items: center; justify-content: center;
 }
-.feed-preview-close {
-  position: absolute; top: 12px; right: 12px; z-index: 10;
-  background: none; border: none; font-size: 18px;
-  color: var(--muted); cursor: pointer;
+.feed-empty-text {
+  font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
 }
+.feed-preview-close { display: none; }
 .feed-preview-map {
-  width: 100%; height: 200px;
+  width: 100%; height: 220px;
   background: var(--paper2);
   flex-shrink: 0; overflow: hidden; position: relative;
-}
-.feed-preview-map canvas {
-  width: 100%; height: 100%;
 }
 .feed-preview-body {
   flex: 1; overflow-y: auto; padding: 16px;
@@ -1046,34 +1030,39 @@ body {
 
     <!-- FEED VIEW -->
     <div class="view" id="feed-view">
-      <div class="feed-preview" id="feed-preview">
-        <button class="feed-preview-close" onclick="closeFeedPreview()">×</button>
-        <div class="feed-preview-map" id="feed-preview-map"></div>
-        <div class="feed-preview-body">
-          <div class="feed-preview-type" id="fp-type"></div>
-          <div class="feed-preview-name" id="fp-name"></div>
-          <div class="feed-preview-date" id="fp-date"></div>
-          <div class="feed-preview-stats" id="fp-stats"></div>
-          <div class="feed-preview-note" id="fp-note"></div>
-          <div class="feed-preview-photos" id="fp-photos"></div>
-          <div class="feed-preview-actions">
-            <button class="feed-preview-btn" onclick="goToActivityFromPreview()">View on Map →</button>
+      <!-- Left column: filters + preview -->
+      <div class="feed-left">
+        <div class="feed-controls">
+          <div class="feed-filter-row">
+            <div class="feed-filters">
+              <button class="feed-filter-btn active" data-sort="recent" onclick="setFeedSort('recent')">Recent</button>
+              <button class="feed-filter-btn" data-sort="distance" onclick="setFeedSort('distance')">Distance</button>
+              <button class="feed-filter-btn" data-sort="elevation" onclick="setFeedSort('elevation')">Elevation</button>
+              <button class="feed-filter-btn" data-sort="story" onclick="setFeedSort('story')">Story</button>
+              <button class="feed-filter-btn" data-sort="photos" onclick="setFeedSort('photos')">Photos</button>
+            </div>
           </div>
-        </div>
-      </div>
-      <div class="feed-controls">
-        <div class="feed-filter-row">
-          <div class="feed-filters">
-            <button class="feed-filter-btn active" data-sort="recent" onclick="setFeedSort('recent')">Recent</button>
-            <button class="feed-filter-btn" data-sort="distance" onclick="setFeedSort('distance')">Distance</button>
-            <button class="feed-filter-btn" data-sort="elevation" onclick="setFeedSort('elevation')">Elevation</button>
-            <button class="feed-filter-btn" data-sort="story" onclick="setFeedSort('story')">Story</button>
-            <button class="feed-filter-btn" data-sort="photos" onclick="setFeedSort('photos')">Photos</button>
-          </div>
-          <div class="feed-divider"></div>
           <div class="feed-type-filters" id="feed-type-filters"></div>
         </div>
+        <div class="feed-preview" id="feed-preview">
+          <div class="feed-preview-map" id="feed-preview-map"></div>
+          <div class="feed-preview-body">
+            <div class="feed-preview-type" id="fp-type"></div>
+            <div class="feed-preview-name" id="fp-name"></div>
+            <div class="feed-preview-date" id="fp-date"></div>
+            <div class="feed-preview-stats" id="fp-stats"></div>
+            <div class="feed-preview-note" id="fp-note"></div>
+            <div class="feed-preview-photos" id="fp-photos"></div>
+            <div class="feed-preview-actions">
+              <button class="feed-preview-btn" onclick="goToActivityFromPreview()">View on Map →</button>
+            </div>
+          </div>
+        </div>
+        <div class="feed-empty-state" id="feed-empty-state">
+          <div class="feed-empty-text">Select a moment</div>
+        </div>
       </div>
+      <!-- Right: honeycomb -->
       <div class="honeycomb-wrap">
         <div class="honeycomb" id="honeycomb"></div>
       </div>
@@ -2171,51 +2160,65 @@ function openFeedPreview(memId) {
     `<img src="${p.dataUrl}" alt="" onclick="openLightbox(0)">`
   ).join('');
 
-  // Mini map
+  // Real Mapbox minimap
   const mapEl = document.getElementById('feed-preview-map');
   mapEl.innerHTML = '';
   const coords = mem.coords || (mem._polyline ? decodePolyline(mem._polyline) : null);
+
   if (coords?.length >= 2) {
-    const canvas = document.createElement('canvas');
-    canvas.width = 300; canvas.height = 200;
-    mapEl.appendChild(canvas);
-    drawPreviewMap(canvas, coords, color);
+    // Calculate bounds
+    let minLng=Infinity, maxLng=-Infinity, minLat=Infinity, maxLat=-Infinity;
+    coords.forEach(([lng,lat]) => {
+      minLng=Math.min(minLng,lng); maxLng=Math.max(maxLng,lng);
+      minLat=Math.min(minLat,lat); maxLat=Math.max(maxLat,lat);
+    });
+    const centerLng = (minLng+maxLng)/2;
+    const centerLat = (minLat+maxLat)/2;
+
+    // Destroy previous preview map if exists
+    if (window._feedPreviewMap) {
+      window._feedPreviewMap.remove();
+      window._feedPreviewMap = null;
+    }
+
+    const miniMap = new mapboxgl.Map({
+      container: mapEl,
+      style: satelliteOn ? 'mapbox://styles/mapbox/satellite-streets-v12' : 'mapbox://styles/mapbox/outdoors-v12',
+      center: [centerLng, centerLat],
+      zoom: 11,
+      interactive: false,
+      attributionControl: false
+    });
+    window._feedPreviewMap = miniMap;
+
+    miniMap.on('load', () => {
+      // Fit to track bounds
+      miniMap.fitBounds([[minLng,minLat],[maxLng,maxLat]], { padding: 24, animate: false });
+
+      miniMap.addSource('preview-track', {
+        type: 'geojson',
+        data: { type:'Feature', geometry:{ type:'LineString', coordinates:coords } }
+      });
+      miniMap.addLayer({
+        id: 'preview-track-line', type: 'line', source: 'preview-track',
+        layout: { 'line-join':'round', 'line-cap':'round' },
+        paint: { 'line-color': color, 'line-width': 3, 'line-opacity': 1 }
+      });
+    });
   } else {
-    mapEl.style.background = color + '20';
+    mapEl.style.background = color + '15';
   }
+
+  // Show empty state hidden, preview shown
+  document.getElementById('feed-empty-state').style.display = 'none';
 }
 
-function drawPreviewMap(canvas, coords, color) {
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity;
-  coords.forEach(([lng,lat])=>{ minX=Math.min(minX,lng); maxX=Math.max(maxX,lng); minY=Math.min(minY,lat); maxY=Math.max(maxY,lat); });
-  const pad = 20;
-  const scale = Math.min((W-pad*2)/(maxX-minX||1), (H-pad*2)/(maxY-minY||1));
-  const offX = (W-(maxX-minX)*scale)/2;
-  const offY = (H-(maxY-minY)*scale)/2;
 
-  ctx.fillStyle = color + '12';
-  ctx.fillRect(0,0,W,H);
-
-  ctx.beginPath();
-  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
-  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.globalAlpha = 0.9;
-  coords.forEach(([lng,lat],i)=>{
-    const x = offX+(lng-minX)*scale;
-    const y = H-offY-(lat-minY)*scale;
-    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
-  });
-  ctx.stroke();
-
-  // Start dot
-  const [slng,slat] = coords[0];
-  ctx.beginPath(); ctx.arc(offX+(slng-minX)*scale, H-offY-(slat-minY)*scale, 4, 0, Math.PI*2);
-  ctx.fillStyle=color; ctx.globalAlpha=1; ctx.fill();
-}
 
 function closeFeedPreview() {
   document.getElementById('feed-preview').classList.remove('open');
+  document.getElementById('feed-empty-state').style.display = 'flex';
+  if (window._feedPreviewMap) { window._feedPreviewMap.remove(); window._feedPreviewMap = null; }
   currentPreviewId = null;
 }
 
@@ -2247,19 +2250,27 @@ function getFeedMemories() {
 
 function renderHoneycomb() {
   const container = document.getElementById('honeycomb');
+  const wrap = container.parentElement;
   container.innerHTML = '';
+
   const mems = getFeedMemories();
   const COLS = 4;
+  const HEX_W = 148;
+  const HEX_H = HEX_W * 1.1547; // perfect hex height
+  const COL_W = HEX_W + 4;      // horizontal step
+  const ROW_H = HEX_H * 0.75;   // vertical step (3/4 height for interlocking)
+  const OFFSET = HEX_W / 2 + 2; // odd row horizontal offset
+
+  const totalRows = Math.ceil(mems.length / COLS);
+  const totalH = totalRows * ROW_H + HEX_H * 0.25 + 40;
+  container.style.height = totalH + 'px';
 
   mems.forEach((mem, idx) => {
     const col = idx % COLS;
     const row = Math.floor(idx / COLS);
-    // On odd rows, first cell gets margin-left of half hex to create offset
-    if (col === 0 && row % 2 === 1) {
-      const spacer = document.createElement('div');
-      spacer.style.cssText = `width:calc(var(--s) / 2 + var(--m)); height:calc(var(--s) * 1.1547); grid-row: span 2; flex-shrink:0;`;
-      container.appendChild(spacer);
-    }
+    const isOddRow = row % 2 === 1;
+    const x = col * COL_W + (isOddRow ? OFFSET : 0) + 10;
+    const y = row * ROW_H + 20;
     const cell = document.createElement('div');
     cell.className = 'hex-cell';
     const color = mem.customColor || getColor(mem.type);
@@ -2288,6 +2299,10 @@ function renderHoneycomb() {
         ${mood ? `<div class="hex-mood">${mood.emoji}</div>` : ''}`;
     }
     cell.onclick = () => openFeedPreview(mem.id);
+    cell.style.left = x + 'px';
+    cell.style.top = y + 'px';
+    cell.style.width = HEX_W + 'px';
+    cell.style.height = HEX_H + 'px';
     container.appendChild(cell);
     if (!mem.photos?.length) {
       const coords = mem.coords || (mem._polyline ? decodePolyline(mem._polyline) : null);
