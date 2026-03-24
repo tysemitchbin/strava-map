@@ -802,6 +802,83 @@ body {
 .pt-dot { width: 5px; height: 5px; border-radius: 50%; }
 .pt-month-label { font-size: 6px; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; }
 
+/* ── FEED PREVIEW PANEL ── */
+.feed-preview {
+  width: 0; min-width: 0;
+  background: var(--paper);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  transition: width 0.3s ease, min-width 0.3s ease;
+  flex-shrink: 0;
+  position: relative;
+}
+.feed-preview.open {
+  width: 300px; min-width: 300px;
+}
+.feed-preview-close {
+  position: absolute; top: 12px; right: 12px; z-index: 10;
+  background: none; border: none; font-size: 18px;
+  color: var(--muted); cursor: pointer;
+}
+.feed-preview-map {
+  width: 100%; height: 200px;
+  background: var(--paper2);
+  flex-shrink: 0; overflow: hidden; position: relative;
+}
+.feed-preview-map canvas {
+  width: 100%; height: 100%;
+}
+.feed-preview-body {
+  flex: 1; overflow-y: auto; padding: 16px;
+}
+.feed-preview-type {
+  font-size: 8px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 6px;
+}
+.feed-preview-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px; font-weight: 500; color: var(--ink);
+  line-height: 1.2; margin-bottom: 4px;
+}
+.feed-preview-date {
+  font-size: 8px; color: var(--muted); letter-spacing: 1px; margin-bottom: 14px;
+}
+.feed-preview-stats {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1px; background: var(--border); margin-bottom: 14px;
+}
+.fp-stat {
+  background: var(--paper2); padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.fp-stat-val {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; font-weight: 500; color: var(--ink);
+}
+.fp-stat-label { font-size: 7px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; }
+.feed-preview-note {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 13px; line-height: 1.6; color: var(--muted);
+  font-style: italic; margin-bottom: 12px;
+  white-space: pre-wrap;
+}
+.feed-preview-photos {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 14px;
+}
+.feed-preview-photos img {
+  width: 100%; aspect-ratio: 1; object-fit: cover; cursor: pointer;
+}
+.feed-preview-actions { border-top: 1px solid var(--border); padding-top: 12px; }
+.feed-preview-btn {
+  width: 100%; padding: 10px;
+  background: var(--ink); color: var(--paper);
+  border: none; font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+  cursor: pointer; transition: opacity 0.15s;
+}
+.feed-preview-btn:hover { opacity: 0.8; }
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: var(--paper); }
@@ -959,6 +1036,21 @@ body {
 
     <!-- FEED VIEW -->
     <div class="view" id="feed-view">
+      <div class="feed-preview" id="feed-preview">
+        <button class="feed-preview-close" onclick="closeFeedPreview()">×</button>
+        <div class="feed-preview-map" id="feed-preview-map"></div>
+        <div class="feed-preview-body">
+          <div class="feed-preview-type" id="fp-type"></div>
+          <div class="feed-preview-name" id="fp-name"></div>
+          <div class="feed-preview-date" id="fp-date"></div>
+          <div class="feed-preview-stats" id="fp-stats"></div>
+          <div class="feed-preview-note" id="fp-note"></div>
+          <div class="feed-preview-photos" id="fp-photos"></div>
+          <div class="feed-preview-actions">
+            <button class="feed-preview-btn" onclick="goToActivityFromPreview()">View on Map →</button>
+          </div>
+        </div>
+      </div>
       <div class="feed-controls">
         <div class="feed-filters">
           <button class="feed-filter-btn active" data-sort="recent" onclick="setFeedSort('recent')">Recent</button>
@@ -2027,6 +2119,103 @@ function buildFeedTypeFilters() {
   });
 }
 
+let currentPreviewId = null;
+
+function openFeedPreview(memId) {
+  const mem = db[memId];
+  if (!mem) return;
+  currentPreviewId = memId;
+
+  const panel = document.getElementById('feed-preview');
+  panel.classList.add('open');
+
+  const color = mem.customColor || getColor(mem.type);
+  const group = getGroup(mem.type);
+
+  // Type + name + date
+  document.getElementById('fp-type').textContent = TYPE_CONFIG[group]?.label || mem.type;
+  document.getElementById('fp-type').style.color = color;
+  document.getElementById('fp-name').textContent = mem.name;
+  document.getElementById('fp-date').textContent = mem.date
+    ? new Date(mem.date).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) : '';
+
+  // Stats
+  document.getElementById('fp-stats').innerHTML = [
+    { val: mem.distance?(mem.distance/1000).toFixed(1)+' km':'—', label:'Distance' },
+    { val: mem.duration?formatDur(mem.duration):'—', label:'Time' },
+    { val: mem.elevation?mem.elevation+' m':'—', label:'Elevation' },
+    { val: mem.avgHR?mem.avgHR+' bpm':'—', label:'Avg HR' },
+  ].map(s=>`<div class="fp-stat"><div class="fp-stat-val">${s.val}</div><div class="fp-stat-label">${s.label}</div></div>`).join('');
+
+  // Note
+  const noteEl = document.getElementById('fp-note');
+  noteEl.textContent = mem.note || '';
+  noteEl.style.display = mem.note ? 'block' : 'none';
+
+  // Photos
+  const photosEl = document.getElementById('fp-photos');
+  photosEl.innerHTML = (mem.photos||[]).slice(0,4).map(p=>
+    `<img src="${p.dataUrl}" alt="" onclick="openLightbox(0)">`
+  ).join('');
+
+  // Mini map
+  const mapEl = document.getElementById('feed-preview-map');
+  mapEl.innerHTML = '';
+  const coords = mem.coords || (mem._polyline ? decodePolyline(mem._polyline) : null);
+  if (coords?.length >= 2) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 300; canvas.height = 200;
+    mapEl.appendChild(canvas);
+    drawPreviewMap(canvas, coords, color);
+  } else {
+    mapEl.style.background = color + '20';
+  }
+}
+
+function drawPreviewMap(canvas, coords, color) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity;
+  coords.forEach(([lng,lat])=>{ minX=Math.min(minX,lng); maxX=Math.max(maxX,lng); minY=Math.min(minY,lat); maxY=Math.max(maxY,lat); });
+  const pad = 20;
+  const scale = Math.min((W-pad*2)/(maxX-minX||1), (H-pad*2)/(maxY-minY||1));
+  const offX = (W-(maxX-minX)*scale)/2;
+  const offY = (H-(maxY-minY)*scale)/2;
+
+  ctx.fillStyle = color + '12';
+  ctx.fillRect(0,0,W,H);
+
+  ctx.beginPath();
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.globalAlpha = 0.9;
+  coords.forEach(([lng,lat],i)=>{
+    const x = offX+(lng-minX)*scale;
+    const y = H-offY-(lat-minY)*scale;
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+
+  // Start dot
+  const [slng,slat] = coords[0];
+  ctx.beginPath(); ctx.arc(offX+(slng-minX)*scale, H-offY-(slat-minY)*scale, 4, 0, Math.PI*2);
+  ctx.fillStyle=color; ctx.globalAlpha=1; ctx.fill();
+}
+
+function closeFeedPreview() {
+  document.getElementById('feed-preview').classList.remove('open');
+  currentPreviewId = null;
+}
+
+function goToActivityFromPreview() {
+  if (!currentPreviewId) return;
+  const mem = db[currentPreviewId];
+  switchView('map');
+  setTimeout(() => {
+    showDetail(currentPreviewId);
+    if (mem?.startLat) map.flyTo({ center:[mem.startLng,mem.startLat], zoom:13, pitch:terrainOn?50:0, duration:1000 });
+  }, 150);
+}
+
 function setFeedSort(sort) {
   feedSort = sort;
   document.querySelectorAll('.feed-filter-btn').forEach(b => b.classList.toggle('active', b.dataset.sort === sort));
@@ -2087,13 +2276,7 @@ function renderHoneycomb() {
         </div>
         ${mood ? `<div class="hex-mood">${mood.emoji}</div>` : ''}`;
     }
-    cell.onclick = () => {
-      switchView('map');
-      setTimeout(() => {
-        showDetail(mem.id);
-        if (mem.startLat) map.flyTo({ center:[mem.startLng,mem.startLat], zoom:13, pitch:terrainOn?50:0, duration:1000 });
-      }, 150);
-    };
+    cell.onclick = () => openFeedPreview(mem.id);
     container.appendChild(cell);
     if (!mem.photos?.length) {
       const coords = mem.coords || (mem._polyline ? decodePolyline(mem._polyline) : null);
@@ -2356,6 +2539,8 @@ _r('updateTypeColor', updateTypeColor);
 _r('forceSync', forceSync);
 _r('updateTrackHighlight', updateTrackHighlight);
 _r('setFeedSort', setFeedSort);
+_r('closeFeedPreview', closeFeedPreview);
+_r('goToActivityFromPreview', goToActivityFromPreview);
 _r('calNav', calNav);
 _r('goToActivity', goToActivity);
 _r('handleProfilePhoto', handleProfilePhoto);
