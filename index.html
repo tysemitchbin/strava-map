@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#1a1814">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Relic">
 <title>Relic — Your Life, Mapped</title>
-<link rel="manifest" href="manifest.json">
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
@@ -1407,22 +1407,26 @@ function initMapLayers() {
       paint: { 'raster-opacity': 1 } }, 'tracks-layer');
     map.setLayoutProperty('satellite-layer', 'visibility', 'none');
   }
+
+  // Zoom/move listeners for constellation toggle
+  if (!map._relicListenersAdded) {
+    map._relicListenersAdded = true;
+    map.on('zoomend', () => {
+      const zoom = map.getZoom();
+      if (zoom >= 7) {
+        constellationMarkers.forEach(m => m.remove());
+        constellationMarkers = [];
+      } else {
+        renderConstellations();
+      }
+    });
+    map.on('moveend', () => {
+      if (map.getZoom() < 7) renderConstellations();
+    });
+  }
 }
 
-// Listen for zoom changes to show/hide constellations vs tracks
-map.on('zoomend', () => {
-  const zoom = map.getZoom();
-  if (zoom >= 7) {
-    constellationMarkers.forEach(m => m.remove());
-    constellationMarkers = [];
-  } else {
-    renderConstellations();
-  }
-});
-
-map.on('moveend', () => {
-  if (map.getZoom() < 7) renderConstellations();
-});
+// Zoom/move listeners added inside initMapLayers
 
 function updateTrackHighlight(memId) {
   if (!map.getLayer('tracks-highlight')) return;
