@@ -1588,7 +1588,8 @@ function initMap() {
         const stravaActivities = await fetchStravaActivities(token);
         setProgress(65);
 
-        // Preserve all non-Strava entries (KML imports, manual imports etc.)
+        // Preserve all non-Strava entries (KML imports kml_*, manual imports import_*, etc.)
+        // These must survive every Strava sync — never wipe them
         const nonStrava = {};
         Object.entries(db).forEach(([id, mem]) => {
           if (!id.startsWith('strava_')) nonStrava[id] = mem;
@@ -2454,7 +2455,6 @@ function doImport() {
     const count = Object.keys(entries).length;
     Object.assign(db, entries);
     saveDB();
-    localStorage.removeItem('relic_sync_ts');
     closeImport();
     // Rebuild everything
     renderAll().then(() => {
@@ -2491,7 +2491,7 @@ function doImport() {
       dist += haversine(coords[i-1][1],coords[i-1][0],coords[i][1],coords[i][0]);
     }
 
-    const id = `import_${Date.now()}`;
+    const id = `kml_${Date.now()}`;
     db[id] = {
       id, name, type, date: date+'T12:00:00Z', source: 'import',
       coords, distance: dist, duration: 0, elevation: 0,
