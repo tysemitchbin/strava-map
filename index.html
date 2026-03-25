@@ -1671,17 +1671,45 @@ function addMemoryToMap(mem) {
   // Individual highlight is handled by updateTrackHighlight
 }
 
+// Split coords into segments on:
+//   - distance gap > 10km between consecutive points, OR
+//   - time gap > 1 day between consecutive timestamps (if timestamps array provided)
+function splitCoordsByGap(coords, maxKm, timestamps) {
+  const MAX_TIME_GAP_MS = 24 * 60 * 60 * 1000; // 1 day
+  const segments = [];
+  let current = [coords[0]];
+  for (let i = 1; i < coords.length; i++) {
+    const dist = haversine(coords[i-1][1], coords[i-1][0], coords[i][1], coords[i][0]);
+    const timeGap = timestamps
+      ? (new Date(timestamps[i]) - new Date(timestamps[i-1]))
+      : 0;
+    if (dist > maxKm * 1000 || timeGap > MAX_TIME_GAP_MS) {
+      if (current.length >= 2) segments.push(current);
+      current = [coords[i]];
+    } else {
+      current.push(coords[i]);
+    }
+  }
+  if (current.length >= 2) segments.push(current);
+  return segments;
+}
+
 function buildTracksGeoJSON(memories) {
+  const MAX_GAP_KM = 10; // break line if consecutive points > 10km apart
   return {
     type: 'FeatureCollection',
     features: memories.map(mem => {
       let coords = mem.coords;
       if (!coords && mem._polyline) coords = decodePolyline(mem._polyline);
       if (!coords || coords.length < 2) return null;
+      const segments = splitCoordsByGap(coords, MAX_GAP_KM, mem.timestamps || null);
+      if (!segments.length) return null;
       return {
         type: 'Feature',
         properties: { id: mem.id, color: mem.customColor || getColor(mem.type) },
-        geometry: { type: 'LineString', coordinates: coords }
+        geometry: segments.length === 1
+          ? { type: 'LineString', coordinates: segments[0] }
+          : { type: 'MultiLineString', coordinates: segments }
       };
     }).filter(Boolean)
   };
@@ -2660,9 +2688,13 @@ function openFeedPreview(memId) {
         padding: 40, animate: false, pitch: 55, bearing: trackBearing
       });
 
+      const previewSegments = splitCoordsByGap(coords, MAX_GAP_KM, mem.timestamps || null);
+      const previewGeom = previewSegments.length === 1
+        ? { type:'LineString', coordinates:previewSegments[0] }
+        : { type:'MultiLineString', coordinates:previewSegments };
       miniMap.addSource('preview-track', {
         type: 'geojson',
-        data: { type:'Feature', geometry:{ type:'LineString', coordinates:coords } }
+        data: { type:'Feature', geometry: previewGeom }
       });
       // Glow effect — wide faint line under sharp line
       miniMap.addLayer({
