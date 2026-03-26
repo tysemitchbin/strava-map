@@ -296,7 +296,13 @@ position: relative;
   border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0;
 }
 
-#activity-list { flex: 1; overflow-y: auto; }
+/* Make the filter sections scrollable above the activity list */
+#filter-panel { overflow: hidden; }
+.filter-sections { overflow-y: auto; flex-shrink: 0; max-height: 55%; }
+.filter-sections::-webkit-scrollbar { width: 2px; }
+.filter-sections::-webkit-scrollbar-track { background: transparent; }
+.filter-sections::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+#activity-list { flex: 1; overflow-y: auto; min-height: 0; }
 #activity-list::-webkit-scrollbar { width: 2px; }
 #activity-list::-webkit-scrollbar-track { background: transparent; }
 #activity-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
@@ -1169,6 +1175,7 @@ align-items: center; justify-content: center;
   <div id="filter-panel">
     <div class="panel-toggle" onclick="togglePanel()">Filter</div>
 
+    <div class="filter-sections">
     <div class="panel-section">
       <div class="section-title">Search</div>
       <input class="search-input" type="text" id="search" placeholder="Search memories...">
@@ -1196,6 +1203,7 @@ align-items: center; justify-content: center;
     <div class="panel-section">
       <div class="section-title">Track Colors</div>
       <div id="color-settings"></div>
+    </div>
     </div>
 
     <div class="result-count" id="result-count"></div>
