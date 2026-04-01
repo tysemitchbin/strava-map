@@ -445,8 +445,6 @@ async function sendToAppsScript() {
 
   const btn = document.getElementById('send-btn');
   btn.disabled = true;
-  btn.textContent = 'Sending...';
-  showStatus(`Sending ${parsedEntries.length} activities...`, 'pending');
 
   const clean = parsedEntries.map(e => {
     const c = { ...e };
@@ -454,21 +452,41 @@ async function sendToAppsScript() {
     return c;
   });
 
-  try {
-    await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(clean),
-      mode: 'no-cors'
-    });
-    showStatus(
-      `Request sent! ${clean.length} activities submitted. Check Apps Script → Executions to confirm, then ↺ Sync in Relic.`,
-      'success'
-    );
-  } catch(err) {
-    showStatus('Error: ' + err.message, 'error');
+  const BATCH_SIZE = 100;
+  const batches = [];
+  for (let i = 0; i < clean.length; i += BATCH_SIZE) {
+    batches.push(clean.slice(i, i + BATCH_SIZE));
   }
 
+  let sent = 0;
+  for (let b = 0; b < batches.length; b++) {
+    const batch = batches[b];
+    const progress = `Sending batch ${b + 1} of ${batches.length} (${sent + batch.length} / ${clean.length} activities)...`;
+    btn.textContent = `${b + 1} / ${batches.length}`;
+    showStatus(progress, 'pending');
+
+    try {
+      await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(batch),
+        mode: 'no-cors'
+      });
+      sent += batch.length;
+      // Small pause between batches to avoid hammering Apps Script
+      if (b < batches.length - 1) await new Promise(r => setTimeout(r, 1500));
+    } catch(err) {
+      showStatus(`Error on batch ${b + 1}: ${err.message}`, 'error');
+      btn.disabled = false;
+      btn.textContent = 'Send to Relic Archive';
+      return;
+    }
+  }
+
+  showStatus(
+    `All ${batches.length} batches sent (${clean.length} activities). Check Apps Script → Executions to confirm, then ↺ Sync in Relic.`,
+    'success'
+  );
   btn.disabled = false;
   btn.textContent = 'Send to Relic Archive';
 }
