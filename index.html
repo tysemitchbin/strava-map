@@ -1234,7 +1234,13 @@ function saveDB() {
     const lean = {};
     Object.entries(db).forEach(([id, obj]) => {
       lean[id] = { ...obj };
-      if (!isStory(obj)) delete lean[id].coords; // strip coords from moments only
+      if (!isStory(obj)) {
+        // Encode raw coords into polyline before stripping (bulk import compat)
+        if (lean[id].coords && lean[id].coords.length >= 2 && !lean[id]._polyline) {
+          lean[id]._polyline = encodePolyline(lean[id].coords);
+        }
+        delete lean[id].coords;
+      }
     });
     localStorage.setItem(DB_KEY, JSON.stringify(lean));
   } catch(e) { console.warn('Storage full', e); }
@@ -1289,6 +1295,11 @@ function mergeFromDrive(driveData) {
       db[id]={...obj, note:e.note||obj.note||'', mood:e.mood??obj.mood??null,
         photos:e.photos?.length?e.photos:(obj.photos||[]), customColor:e.customColor||obj.customColor||null,
         name:e._nameEdited?e.name:(obj.name||e.name)};
+      // Fix: encode raw coords into polyline if missing (bulk import compat)
+      var merged = db[id];
+      if (merged.coords && merged.coords.length >= 2 && !merged._polyline) {
+        merged._polyline = encodePolyline(merged.coords);
+      }
       if(!e.id) n++;
     }
   });
