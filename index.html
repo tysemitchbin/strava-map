@@ -494,6 +494,103 @@ body { font-family: 'JetBrains Mono', monospace; background: var(--ink); color: 
 .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
 .import-progress { font-size: 9px; color: var(--muted); margin-top: 8px; letter-spacing: 0.5px; }
 
+/* ── STORY MODAL ── */
+.story-modal { width: 780px; max-width: 95vw; padding: 0; display: flex; flex-direction: column; max-height: 85vh; }
+.story-modal-header { padding: 20px 24px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.story-modal-body { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+.story-modal-left { width: 380px; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+.story-modal-right { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+.story-modal-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; flex-shrink: 0; }
+
+/* Left panel: moment selector */
+.sm-filter-bar { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+.sm-search {
+  width: 100%; background: var(--paper2); border: 1px solid var(--border);
+  color: var(--ink); font-family: 'Cormorant Garamond', serif; font-size: 13px; font-style: italic;
+  padding: 6px 10px; outline: none;
+}
+.sm-search:focus { border-color: var(--accent); }
+.sm-search::placeholder { color: var(--muted); font-style: italic; }
+.sm-filter-row { display: flex; gap: 3px; flex-wrap: wrap; }
+.sm-filter-btn {
+  padding: 3px 7px; border: 1px solid var(--border); background: transparent;
+  font-family: 'JetBrains Mono', monospace; font-size: 7px; letter-spacing: 0.8px; text-transform: uppercase;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.sm-filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+.sm-filter-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.sm-date-row { display: flex; gap: 6px; align-items: center; }
+.sm-date-input {
+  flex: 1; background: var(--paper2); border: 1px solid var(--border);
+  color: var(--ink); font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 4px 6px; outline: none;
+}
+.sm-date-input:focus { border-color: var(--accent); }
+.sm-date-sep { font-size: 8px; color: var(--muted); }
+.sm-tally { padding: 6px 14px; font-size: 8px; color: var(--muted); letter-spacing: 1px; border-bottom: 1px solid var(--border); flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
+.sm-select-all {
+  font-family: 'JetBrains Mono', monospace; font-size: 7px; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--accent); background: none; border: none; cursor: pointer; padding: 2px 4px;
+}
+.sm-select-all:hover { text-decoration: underline; }
+.sm-moment-list { flex: 1; overflow-y: auto; min-height: 0; }
+.sm-moment-item {
+  display: flex; align-items: center; gap: 8px; padding: 8px 14px;
+  border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s;
+}
+.sm-moment-item:hover { background: var(--paper2); }
+.sm-moment-item.selected { background: var(--paper3); }
+.sm-checkbox {
+  width: 16px; height: 16px; border: 1px solid var(--border); background: var(--paper);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  font-size: 10px; color: var(--ink); transition: all 0.1s;
+}
+.sm-moment-item.selected .sm-checkbox { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.sm-moment-info { flex: 1; min-width: 0; }
+.sm-moment-name { font-family: 'Cormorant Garamond', serif; font-size: 13px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+.sm-moment-meta { font-size: 7px; color: var(--muted); letter-spacing: 0.5px; display: flex; gap: 6px; }
+.sm-moment-dist { font-size: 9px; color: var(--accent); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+.sm-type-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+/* Right panel: story builder */
+.sm-builder { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+.sm-label { font-size: 7px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.sm-title-input {
+  font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: var(--ink);
+  background: transparent; border: none; border-bottom: 1px solid var(--border); outline: none; width: 100%; padding: 4px 0;
+}
+.sm-title-input:focus { border-bottom-color: var(--accent); }
+.sm-title-input::placeholder { color: var(--muted); }
+.sm-narrative-input {
+  width: 100%; min-height: 80px; background: var(--paper2); border: 1px solid var(--border);
+  color: var(--ink); font-family: 'Cormorant Garamond', serif; font-size: 13px; line-height: 1.6;
+  padding: 8px 10px; outline: none; resize: vertical;
+}
+.sm-narrative-input:focus { border-color: var(--accent); }
+.sm-narrative-input::placeholder { color: var(--muted); font-style: italic; }
+.sm-selected-list { display: flex; flex-direction: column; gap: 2px; max-height: 180px; overflow-y: auto; }
+.sm-selected-chip {
+  display: flex; align-items: center; gap: 6px; padding: 5px 8px; background: var(--paper2); border: 1px solid var(--border);
+  font-size: 9px; color: var(--ink);
+}
+.sm-selected-chip .sm-type-dot { width: 5px; height: 5px; }
+.sm-chip-name { flex: 1; font-family: 'Cormorant Garamond', serif; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sm-chip-remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; padding: 0 2px; }
+.sm-chip-remove:hover { color: var(--accent); }
+.sm-stats-summary {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: var(--border);
+}
+.sm-stat { background: var(--paper2); padding: 8px 10px; }
+.sm-stat-val { font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 500; color: var(--ink); }
+.sm-stat-label { font-size: 7px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+.sm-status { font-size: 9px; color: var(--muted); letter-spacing: 0.5px; }
+
+@media (max-width: 768px) {
+  .story-modal { width: 95vw; }
+  .story-modal-body { flex-direction: column; }
+  .story-modal-left { width: 100%; max-height: 45vh; border-right: none; border-bottom: 1px solid var(--border); }
+  .story-modal-right { max-height: 40vh; }
+}
+
 /* ── HAMBURGER / MOBILE ── */
 .hamburger {
   display: none; background: none; border: none; padding: 0 16px; cursor: pointer;
@@ -839,6 +936,7 @@ body { font-family: 'JetBrains Mono', monospace; background: var(--ink); color: 
         <div class="profile-grid-header">
           <div class="profile-grid-title">Moments</div>
           <div class="profile-grid-sort">
+            <button class="btn-ghost" onclick="openStoryModal()" style="padding:3px 10px;font-size:7px;margin-right:8px">+ New Story</button>
             <button class="pg-sort-btn active" data-sort="recent" onclick="setProfileSort('recent')">Recent</button>
             <button class="pg-sort-btn" data-sort="distance" onclick="setProfileSort('distance')">Distance</button>
             <button class="pg-sort-btn" data-sort="photos" onclick="setProfileSort('photos')">Photos</button>
@@ -873,6 +971,63 @@ body { font-family: 'JetBrains Mono', monospace; background: var(--ink); color: 
     <div class="modal-actions">
       <button class="btn-ghost" onclick="closeImport()">Cancel</button>
       <button class="btn-primary" id="import-btn" onclick="doImport()">Add to Archive</button>
+    </div>
+  </div>
+</div>
+
+<!-- STORY MODAL -->
+<div class="modal-overlay" id="story-modal">
+  <div class="modal story-modal">
+    <div class="story-modal-header">
+      <div class="modal-title" id="story-modal-title">New Story</div>
+      <div class="modal-sub">Select moments, then build your story</div>
+    </div>
+    <div class="story-modal-body">
+      <div class="story-modal-left">
+        <div class="sm-filter-bar">
+          <input class="sm-search" type="text" id="sm-search" placeholder="Search moments..." oninput="renderStoryMomentList()">
+          <div class="sm-filter-row" id="sm-type-filters"></div>
+          <div class="sm-date-row">
+            <input class="sm-date-input" type="date" id="sm-date-from" onchange="renderStoryMomentList()">
+            <span class="sm-date-sep">to</span>
+            <input class="sm-date-input" type="date" id="sm-date-to" onchange="renderStoryMomentList()">
+          </div>
+        </div>
+        <div class="sm-tally">
+          <span id="sm-tally-text">0 selected</span>
+          <button class="sm-select-all" onclick="storySelectAllVisible()">Select All</button>
+        </div>
+        <div class="sm-moment-list" id="sm-moment-list"></div>
+      </div>
+      <div class="story-modal-right">
+        <div class="sm-builder">
+          <div>
+            <div class="sm-label">Title</div>
+            <input class="sm-title-input" type="text" id="sm-title" placeholder="Name your story..." oninput="updateStoryPreview()">
+          </div>
+          <div>
+            <div class="sm-label">Narrative</div>
+            <textarea class="sm-narrative-input" id="sm-narrative" placeholder="Write about this chapter of your life..."></textarea>
+          </div>
+          <div>
+            <div class="sm-label">Mood</div>
+            <div class="mood-row" id="sm-mood-row"></div>
+          </div>
+          <div>
+            <div class="sm-label">Selected Moments</div>
+            <div class="sm-selected-list" id="sm-selected-list"></div>
+          </div>
+          <div>
+            <div class="sm-label">Summary</div>
+            <div class="sm-stats-summary" id="sm-stats-summary"></div>
+          </div>
+          <div class="sm-status" id="sm-status"></div>
+        </div>
+      </div>
+    </div>
+    <div class="story-modal-footer">
+      <button class="btn-ghost" onclick="closeStoryModal()">Cancel</button>
+      <button class="btn-primary" id="sm-save-btn" onclick="saveStory()">Create Story</button>
     </div>
   </div>
 </div>
@@ -1808,6 +1963,241 @@ function parseKML(text) {
 }
 
 // ════════════════════════════════════════
+// STORY MODAL
+// ════════════════════════════════════════
+let storySelectedIds = new Set();
+let storyTypeFilters = new Set(Object.keys(TYPE_CONFIG));
+let storySort = 'recent';
+let editingStoryId = null; // null = new story, string = editing existing
+
+function openStoryModal(existingId) {
+  editingStoryId = existingId || null;
+  storySelectedIds = new Set();
+  storyTypeFilters = new Set(Object.keys(TYPE_CONFIG));
+  storySort = 'recent';
+
+  if (editingStoryId && db[editingStoryId] && isStory(db[editingStoryId])) {
+    const s = db[editingStoryId];
+    document.getElementById('sm-title').value = s.title || '';
+    document.getElementById('sm-narrative').value = s.narrative || '';
+    document.getElementById('story-modal-title').textContent = 'Edit Story';
+    document.getElementById('sm-save-btn').textContent = 'Save Changes';
+    (s.momentIds || []).forEach(id => { if (db[id]) storySelectedIds.add(id); });
+    _storyMood = s.mood || null;
+  } else {
+    document.getElementById('sm-title').value = '';
+    document.getElementById('sm-narrative').value = '';
+    document.getElementById('story-modal-title').textContent = 'New Story';
+    document.getElementById('sm-save-btn').textContent = 'Create Story';
+    _storyMood = null;
+  }
+
+  document.getElementById('sm-search').value = '';
+  document.getElementById('sm-date-from').value = '';
+  document.getElementById('sm-date-to').value = '';
+  document.getElementById('sm-status').textContent = '';
+
+  buildStoryTypeFilters();
+  buildStoryMoodRow();
+  renderStoryMomentList();
+  updateStoryPreview();
+  document.getElementById('story-modal').classList.add('open');
+}
+
+function closeStoryModal() {
+  document.getElementById('story-modal').classList.remove('open');
+  editingStoryId = null;
+  storySelectedIds = new Set();
+}
+
+let _storyMood = null;
+
+function buildStoryTypeFilters() {
+  const container = document.getElementById('sm-type-filters');
+  container.innerHTML = Object.entries(TYPE_CONFIG).map(([key, cfg]) => {
+    const active = storyTypeFilters.has(key) ? ' active' : '';
+    return '<button class="sm-filter-btn' + active + '" data-stype="' + key + '" onclick="toggleStoryTypeFilter(\'' + key + '\',this)">' + cfg.label + '</button>';
+  }).join('');
+}
+
+function toggleStoryTypeFilter(key, btn) {
+  if (storyTypeFilters.has(key)) storyTypeFilters.delete(key);
+  else storyTypeFilters.add(key);
+  btn.classList.toggle('active');
+  renderStoryMomentList();
+}
+
+function buildStoryMoodRow() {
+  document.getElementById('sm-mood-row').innerHTML = MOODS.map(m =>
+    '<button class="mood-btn' + (_storyMood === m.id ? ' active' : '') + '" onclick="setStoryMood(\'' + m.id + '\',this)">' + m.emoji + '<span>' + m.label + '</span></button>'
+  ).join('');
+}
+
+function setStoryMood(moodId, btn) {
+  _storyMood = _storyMood === moodId ? null : moodId;
+  document.querySelectorAll('#sm-mood-row .mood-btn').forEach(b => b.classList.remove('active'));
+  if (_storyMood) btn.classList.add('active');
+}
+
+function getFilteredStoryMoments() {
+  const search = document.getElementById('sm-search').value.toLowerCase();
+  const dateFrom = document.getElementById('sm-date-from').value;
+  const dateTo = document.getElementById('sm-date-to').value;
+
+  let mems = getMoments();
+
+  mems = mems.filter(m => {
+    const group = getGroup(m.type);
+    if (!storyTypeFilters.has(group)) return false;
+    if (search && !m.name.toLowerCase().includes(search)) return false;
+    if (dateFrom && m.date && m.date.substring(0, 10) < dateFrom) return false;
+    if (dateTo && m.date && m.date.substring(0, 10) > dateTo) return false;
+    return true;
+  });
+
+  if (storySort === 'recent') mems.sort((a, b) => (b.date || '') > (a.date || '') ? 1 : -1);
+  else if (storySort === 'distance') mems.sort((a, b) => (b.distance || 0) - (a.distance || 0));
+  else if (storySort === 'name') mems.sort((a, b) => a.name.localeCompare(b.name));
+
+  return mems;
+}
+
+function renderStoryMomentList() {
+  const mems = getFilteredStoryMoments();
+  const list = document.getElementById('sm-moment-list');
+  list.innerHTML = '';
+
+  mems.slice(0, 300).forEach(m => {
+    const color = m.customColor || getColor(m.type);
+    const group = getGroup(m.type);
+    const date = m.date ? new Date(m.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+    const dist = m.distance ? (m.distance / 1000).toFixed(1) + ' km' : '';
+    const sel = storySelectedIds.has(m.id);
+
+    const item = document.createElement('div');
+    item.className = 'sm-moment-item' + (sel ? ' selected' : '');
+    item.innerHTML =
+      '<div class="sm-checkbox">' + (sel ? '✓' : '') + '</div>' +
+      '<div class="sm-type-dot" style="background:' + color + '"></div>' +
+      '<div class="sm-moment-info">' +
+        '<div class="sm-moment-name">' + m.name + '</div>' +
+        '<div class="sm-moment-meta"><span>' + date + '</span><span>' + (TYPE_CONFIG[group]?.label || m.type) + '</span></div>' +
+      '</div>' +
+      '<div class="sm-moment-dist">' + dist + '</div>';
+    item.onclick = function() { toggleStoryMoment(m.id); };
+    list.appendChild(item);
+  });
+
+  // Update tally
+  document.getElementById('sm-tally-text').textContent = storySelectedIds.size + ' selected of ' + mems.length + ' shown';
+}
+
+function toggleStoryMoment(id) {
+  if (storySelectedIds.has(id)) storySelectedIds.delete(id);
+  else storySelectedIds.add(id);
+  renderStoryMomentList();
+  updateStoryPreview();
+}
+
+function storySelectAllVisible() {
+  const mems = getFilteredStoryMoments();
+  const allSelected = mems.every(m => storySelectedIds.has(m.id));
+  if (allSelected) {
+    // Deselect all visible
+    mems.forEach(m => storySelectedIds.delete(m.id));
+  } else {
+    mems.forEach(m => storySelectedIds.add(m.id));
+  }
+  renderStoryMomentList();
+  updateStoryPreview();
+}
+
+function removeStoryMoment(id) {
+  storySelectedIds.delete(id);
+  renderStoryMomentList();
+  updateStoryPreview();
+}
+
+function updateStoryPreview() {
+  // Selected chips
+  const chipList = document.getElementById('sm-selected-list');
+  chipList.innerHTML = '';
+  const selectedMems = [...storySelectedIds].map(id => db[id]).filter(m => m && !isStory(m));
+  selectedMems.sort((a, b) => (a.date || '') > (b.date || '') ? 1 : -1);
+
+  selectedMems.forEach(m => {
+    const color = m.customColor || getColor(m.type);
+    const chip = document.createElement('div');
+    chip.className = 'sm-selected-chip';
+    chip.innerHTML =
+      '<div class="sm-type-dot" style="background:' + color + '"></div>' +
+      '<div class="sm-chip-name">' + m.name + '</div>' +
+      '<button class="sm-chip-remove" onclick="removeStoryMoment(\'' + m.id + '\')">x</button>';
+    chipList.appendChild(chip);
+  });
+
+  // Stats
+  let dist = 0, elev = 0, dur = 0;
+  selectedMems.forEach(m => { dist += m.distance || 0; elev += m.elevation || 0; dur += m.duration || 0; });
+  document.getElementById('sm-stats-summary').innerHTML =
+    '<div class="sm-stat"><div class="sm-stat-val">' + (dist > 0 ? (dist / 1000).toFixed(1) + ' km' : '—') + '</div><div class="sm-stat-label">Distance</div></div>' +
+    '<div class="sm-stat"><div class="sm-stat-val">' + (elev > 0 ? Math.round(elev) + ' m' : '—') + '</div><div class="sm-stat-label">Elevation</div></div>' +
+    '<div class="sm-stat"><div class="sm-stat-val">' + (dur > 0 ? formatDur(dur) : '—') + '</div><div class="sm-stat-label">Time</div></div>';
+}
+
+async function saveStory() {
+  const title = document.getElementById('sm-title').value.trim();
+  if (!title) { document.getElementById('sm-status').textContent = 'Please enter a title.'; return; }
+  if (storySelectedIds.size === 0) { document.getElementById('sm-status').textContent = 'Select at least one moment.'; return; }
+
+  const btn = document.getElementById('sm-save-btn');
+  btn.disabled = true;
+  document.getElementById('sm-status').textContent = 'Saving...';
+
+  const id = editingStoryId || stableStoryId(title);
+  const now = new Date().toISOString();
+
+  const story = {
+    id: id,
+    type: 'story',
+    title: title,
+    subtitle: '',
+    coverPhoto: (editingStoryId && db[editingStoryId]) ? db[editingStoryId].coverPhoto || null : null,
+    momentIds: [...storySelectedIds],
+    narrative: document.getElementById('sm-narrative').value,
+    mood: _storyMood,
+    tags: [],
+    published: false,
+    createdAt: (editingStoryId && db[editingStoryId]) ? db[editingStoryId].createdAt || now : now,
+    lastModified: now,
+    _totalDistance: 0,
+    _totalElevation: 0,
+    _totalDuration: 0,
+    _momentCount: 0,
+    _typeBreakdown: {}
+  };
+
+  computeStoryStats(story);
+  db[id] = story;
+  saveDB();
+
+  // Persist to Drive
+  const result = await persistToDrive([story]);
+  if (result.ok) {
+    document.getElementById('sm-status').textContent = 'Story saved and synced to Drive.';
+  } else {
+    document.getElementById('sm-status').textContent = 'Saved locally. Drive sync pending.';
+  }
+
+  // Refresh app state
+  allStories = getStories();
+  statsBuilt = false;
+
+  btn.disabled = false;
+  setTimeout(() => { closeStoryModal(); if (document.getElementById('profile-view')?.classList.contains('active')) buildProfile(); }, 1500);
+}
+
+// ════════════════════════════════════════
 // HELPERS
 // ════════════════════════════════════════
 function haversine(lat1,lon1,lat2,lon2){const R=6371000,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180;const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
@@ -1857,7 +2247,7 @@ dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');
   updateImportUI();
 });
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDetail();closeLightbox();closeImport();closeMobileMenu();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDetail();closeLightbox();closeImport();closeStoryModal();closeMobileMenu();}});
 window.addEventListener('resize', () => {if(map)map.resize();    if(map) map.resize(); if(document.getElementById('profile-view')?.classList.contains('active')) renderProfileHoneycomb();});
 
 // Register all functions
@@ -1876,6 +2266,12 @@ _r('setProfileSort',setProfileSort);_r('showHeatmapDay',showHeatmapDay);_r('remo
 _r('applyFilters',applyFilters);_r('updateImportUI',updateImportUI);
 _r('isStory',isStory);_r('getMoments',getMoments);_r('getStories',getStories);
 _r('computeStoryStats',computeStoryStats);_r('stableStoryId',stableStoryId);
+_r('openStoryModal',openStoryModal);_r('closeStoryModal',closeStoryModal);
+_r('renderStoryMomentList',renderStoryMomentList);_r('toggleStoryMoment',toggleStoryMoment);
+_r('storySelectAllVisible',storySelectAllVisible);_r('removeStoryMoment',removeStoryMoment);
+_r('updateStoryPreview',updateStoryPreview);_r('saveStory',saveStory);
+_r('toggleStoryTypeFilter',toggleStoryTypeFilter);_r('setStoryMood',setStoryMood);
+_r('buildStoryTypeFilters',buildStoryTypeFilters);
 
 initMap();
 </script>
